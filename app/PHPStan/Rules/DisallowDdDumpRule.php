@@ -6,6 +6,7 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleErrorBuilder;
 
 /**
  * @implements Rule<FuncCall>
@@ -27,7 +28,7 @@ class DisallowDdDumpRule implements Rule
 
         if (in_array($name, ['dd', 'dump', 'var_dump'])) {
             return [
-                sprintf('Usage of debug function "%s()" is not allowed.', $name)
+                RuleErrorBuilder::message(sprintf('Usage of debug function "%s()" is not allowed.', $name))->build()
             ];
         }
 
