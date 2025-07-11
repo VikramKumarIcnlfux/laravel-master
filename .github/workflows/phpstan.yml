@@ -1,7 +1,7 @@
 name: PHPStan Check
 
 on:
-  push:
+  commit:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
