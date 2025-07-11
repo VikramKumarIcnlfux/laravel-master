@@ -3,15 +3,11 @@ includes:
 
 parameters:
     level: 5
-
     paths:
         - app
         - routes
 
-    inferPrivatePropertyTypeFromConstructor: true
-
-    # ❌ REMOVE the invalid/old options:
-    # checkMissingIterableValueType: false
-    # checkMissingCallableSignature: false
-    # checkGenericClassInNonGenericObjectType: false
-    # inferVariableTypes: true
+services:
+    -
+        class: App\PHPStan\Rules\DisallowDdDumpRule
+        tags: [phpstan.rules.rule]
