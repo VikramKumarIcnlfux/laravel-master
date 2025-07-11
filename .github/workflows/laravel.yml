@@ -78,27 +78,16 @@ jobs:
         fi
 
     # ----------------------------
-    # Upload Full Log as Artifact (optional)
-    # ----------------------------
-
-    - name: Upload code-checks.log
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: code-check-log
-        path: code-checks.log
-
-    # ----------------------------
     # Notify Google Chat on CODE failure only
     # ----------------------------
 
     - name: Notify Google Chat on CODE failure only
       if: ${{ steps.set-output.outputs.code_failed == 'true' }}
       run: |
-        SHORT_LOG=$(tail -n 20 code-checks.log | sed ':a;N;$!ba;s/"/\\"/g; s/\n/\\n/g')
+        SHORT_LOG=$(grep -Ei "error|fail|undefined|exception" code-checks.log | tail -n 10 | sed ':a;N;$!ba;s/"/\\"/g; s/\n/\\n/g')
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H 'Content-Type: application/json' \
-          -d "{\"text\": \"🚨 *Laravel CI pipeline failed (Code Check)*\\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n📋 Last 20 log lines:\\n$SHORT_LOG\\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+          -d "{\"text\": \"🚨 *Laravel CI pipeline failed (Code Check)*\\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n📋 Error Snippet:\\n$SHORT_LOG\\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
 
     # ----------------------------
     # Notify Google Chat on Success
