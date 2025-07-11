@@ -1,7 +1,7 @@
 name: PHPStan Check
 
 on:
-  commit:
+  push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
@@ -40,8 +40,9 @@ jobs:
     - name: Send Google Chat notification if PHPStan fails
       if: ${{ steps.phpstan.outcome == 'failure' }}
       run: |
+        ERRORS="${{ steps.errors.outputs.errors }}"
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🚨 *PHPStan Failed on Commit*\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n📋 Errors:\n${{ steps.errors.outputs.errors }}\n🔗 https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"
+            \"text\": \"🚨 *PHPStan Failed on Commit*\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n📋 Errors:\n$ERRORS\n🔗 https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"
           }"
