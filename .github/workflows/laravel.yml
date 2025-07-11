@@ -38,15 +38,18 @@ jobs:
 
     - name: Run Laravel Pint (Code Style)
       id: pint
-      run: ./vendor/bin/pint --test > pint.log 2>&1 || true
+      run: ./vendor/bin/pint --test | tee pint.log
+      continue-on-error: true
 
     - name: Run Laravel Tests
       id: tests
-      run: php artisan test > tests.log 2>&1 || true
+      run: php artisan test | tee tests.log
+      continue-on-error: true
 
     - name: Run Larastan (PHPStan)
       id: phpstan
-      run: ./vendor/bin/phpstan analyse > phpstan.log 2>&1 || true
+      run: ./vendor/bin/phpstan analyse | tee phpstan.log
+      continue-on-error: true
 
     # ----------------------------
     # Combine logs into one file
@@ -92,10 +95,10 @@ jobs:
     - name: Notify Google Chat on CODE failure only
       if: ${{ steps.set-output.outputs.code_failed == 'true' }}
       run: |
-        SHORT_LOG=$(tail -n 20 code-checks.log | sed ':a;N;$!ba;s/\n/\\n/g')
+        SHORT_LOG=$(tail -n 20 code-checks.log | sed ':a;N;$!ba;s/"/\\"/g; s/\n/\\n/g')
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H 'Content-Type: application/json' \
-          -d "{\"text\": \"🚨 *Laravel CI pipeline failed* (Code Check)\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n📋 Last 20 log lines:\\n$SHORT_LOG\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+          -d "{\"text\": \"🚨 *Laravel CI pipeline failed (Code Check)*\\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n📋 Last 20 log lines:\\n$SHORT_LOG\\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
 
     # ----------------------------
     # Notify Google Chat on Success
@@ -106,4 +109,4 @@ jobs:
       run: |
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H 'Content-Type: application/json' \
-          -d "{\"text\": \"✅ Laravel CI pipeline *succeeded* — No code issues\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
+          -d "{\"text\": \"✅ Laravel CI pipeline *succeeded* — No code issues\\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"

@@ -1,13 +1,15 @@
 includes:
-    - ./vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - vendor/nunomaduro/larastan/extension.neon
 
 parameters:
     level: 5
     paths:
         - app
-        - routes
+
+    larastan:
+        enable_model_property_inference: true
 
 services:
     -
-        class: App\PHPStan\Rules\DisallowDdDumpRule
+        class: App\PHPStan\Rules\NoIndexMethodInControllersRule
         tags: [phpstan.rules.rule]
