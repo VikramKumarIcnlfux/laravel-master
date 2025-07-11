@@ -34,6 +34,7 @@ jobs:
 
     - name: Run Laravel Tests
       run: php artisan test
+
     - name: Run Larastan (PHPStan)
       run: ./vendor/bin/phpstan analyse
     - name: Notify Google Chat on failure
