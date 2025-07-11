@@ -9,6 +9,7 @@ on:
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
+
     outputs:
       code_failed: ${{ steps.set-output.outputs.code_failed }}
 
@@ -34,20 +35,29 @@ jobs:
     - name: Set Directory Permissions
       run: chmod -R 777 storage bootstrap/cache
 
-    # --- CODE LEVEL CHECKS ---
+    # ----------------------------
+    # Run Code Quality Checks
+    # ----------------------------
+
     - name: Run Laravel Pint (Code Style)
       id: pint
       run: ./vendor/bin/pint --test
+      continue-on-error: true
 
     - name: Run Laravel Tests
       id: tests
       run: php artisan test
+      continue-on-error: true
 
     - name: Run Larastan (PHPStan)
       id: phpstan
       run: ./vendor/bin/phpstan analyse
+      continue-on-error: true
 
-    # Set output if any code-level step failed
+    # ----------------------------
+    # Set failure flag
+    # ----------------------------
+
     - name: Set failure output if code fails
       id: set-output
       run: |
@@ -57,7 +67,10 @@ jobs:
           echo "code_failed=false" >> "$GITHUB_OUTPUT"
         fi
 
-    # Only notify on code-level failure
+    # ----------------------------
+    # Notify Google Chat on Failure
+    # ----------------------------
+
     - name: Notify Google Chat on CODE failure only
       if: ${{ steps.set-output.outputs.code_failed == 'true' }}
       run: |
@@ -69,7 +82,10 @@ jobs:
         }
         EOF
 
-    # (Optional) Notify on full success
+    # ----------------------------
+    # Notify Google Chat on Success
+    # ----------------------------
+
     - name: Notify Google Chat on success
       if: ${{ steps.set-output.outputs.code_failed == 'false' && success() }}
       run: |
