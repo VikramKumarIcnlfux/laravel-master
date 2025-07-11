@@ -61,7 +61,7 @@ jobs:
     - name: Set failure output if code fails
       id: set-output
       run: |
-        if [[ "${{ steps.pint.outcome }}" == "failure" || "${{ steps.tests.outcome }}" == "failure" || "${{ steps.phpstan.outcome }}" == "failure" ]]; then
+        if [[ "${{ steps.pint.conclusion }}" == "failure" || "${{ steps.tests.conclusion }}" == "failure" || "${{ steps.phpstan.conclusion }}" == "failure" ]]; then
           echo "code_failed=true" >> "$GITHUB_OUTPUT"
         else
           echo "code_failed=false" >> "$GITHUB_OUTPUT"
