@@ -11,7 +11,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * @implements Rule<FuncCall>
  */
-class DisallowDdDumpRule implements Rule
+class NoIndexMethodInControllersRule implements Rule
 {
     public function getNodeType(): string
     {
