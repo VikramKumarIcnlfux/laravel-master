@@ -10,5 +10,5 @@ parameters:
 
 services:
     -
-        class: App\PHPStan\Rules\DisallowDdDumpRule
+        class: App\PHPStan\Rules\NoIndexMethodInControllersRule
         tags: [phpstan.rules.rule]
