@@ -9,6 +9,8 @@ on:
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
+    outputs:
+      code_failed: ${{ steps.set-output.outputs.code_failed }}
 
     steps:
     - name: Checkout code
@@ -32,29 +34,49 @@ jobs:
     - name: Set Directory Permissions
       run: chmod -R 777 storage bootstrap/cache
 
+    # --- CODE LEVEL CHECKS ---
+    - name: Run Laravel Pint (Code Style)
+      id: pint
+      run: ./vendor/bin/pint --test
+
     - name: Run Laravel Tests
+      id: tests
       run: php artisan test
 
     - name: Run Larastan (PHPStan)
+      id: phpstan
       run: ./vendor/bin/phpstan analyse
-    - name: Notify Google Chat on failure
-      if: failure()
+
+    # Set output if any code-level step failed
+    - name: Set failure output if code fails
+      id: set-output
+      run: |
+        if [[ "${{ steps.pint.outcome }}" == "failure" || "${{ steps.tests.outcome }}" == "failure" || "${{ steps.phpstan.outcome }}" == "failure" ]]; then
+          echo "code_failed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "code_failed=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    # Only notify on code-level failure
+    - name: Notify Google Chat on CODE failure only
+      if: ${{ steps.set-output.outputs.code_failed == 'true' }}
       run: |
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H 'Content-Type: application/json' \
           -d @- <<EOF
         {
-          "text": "🚨 GitHub Actions pipeline *failed* for Laravel repo: ${GITHUB_REPOSITORY}\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n🔗 Link: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          "text": "🚨 Code-level *failure* in Laravel CI pipeline\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n🔗 Link: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
         }
         EOF
 
+    # (Optional) Notify on full success
     - name: Notify Google Chat on success
-      if: success()
+      if: ${{ steps.set-output.outputs.code_failed == 'false' && success() }}
       run: |
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H 'Content-Type: application/json' \
           -d @- <<EOF
         {
-          "text": "✅ GitHub Actions pipeline *succeeded* for Laravel repo: ${GITHUB_REPOSITORY}\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n🔗 Link: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          "text": "✅ Laravel CI pipeline *succeeded* — No code issues\n🔁 Commit: ${GITHUB_SHA}\n👤 Author: ${GITHUB_ACTOR}\n🔗 Link: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
         }
         EOF

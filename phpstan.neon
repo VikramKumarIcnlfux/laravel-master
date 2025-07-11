@@ -3,13 +3,15 @@ includes:
 
 parameters:
     level: 5
+
     paths:
         - app
         - routes
 
-    checkMissingIterableValueType: false
-    checkMissingCallableSignature: false
-    checkGenericClassInNonGenericObjectType: false
-
     inferPrivatePropertyTypeFromConstructor: true
-    inferVariableTypes: true
+
+    # ❌ REMOVE the invalid/old options:
+    # checkMissingIterableValueType: false
+    # checkMissingCallableSignature: false
+    # checkGenericClassInNonGenericObjectType: false
+    # inferVariableTypes: true
