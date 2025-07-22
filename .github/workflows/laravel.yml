@@ -35,17 +35,14 @@ jobs:
     - name: Run Laravel Pint (Code Style)
       id: pint
       run: ./vendor/bin/pint --test | tee pint.log
-      continue-on-error: true
 
     - name: Run Laravel Tests
       id: tests
       run: php artisan test | tee tests.log
-      continue-on-error: true
 
     - name: Run Larastan (PHPStan)
       id: phpstan
       run: ./vendor/bin/phpstan analyse | tee phpstan.log
-      continue-on-error: true
 
     - name: Combine logs
       run: |
