@@ -49,7 +49,6 @@ jobs:
     - name: Run Larastan (PHPStan)
       id: phpstan
       run: ./vendor/bin/phpstan analyse | tee phpstan.log
-      continue-on-error: true
 
     # ----------------------------
     # Combine logs into one file
