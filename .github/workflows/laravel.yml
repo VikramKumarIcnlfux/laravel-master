@@ -68,7 +68,7 @@ jobs:
     - name: Notify Google Chat on CODE failure only
       if: ${{ steps.set-output.outputs.code_failed == 'true' }}
       run: |
-        SHORT_LOG=$(grep -Ei "^\[ERROR\]|fail|undefined|exception" code-checks.log | tail -n 10 | sed 's/^\[ERROR\] *//; s/ .*-- .*$//; s/"/\\"/g; s/\n/\\n/g' || echo "No specific errors found")
+        SHORT_LOG=$(grep -Ei "^\[ERROR\]|fail|undefined|exception" code-checks.log | tail -n 10 | sed 's/^\[ERROR\] *//; s/ .*-- .*$//; s/^/Code Issue: /; s/"/\\"/g; s/\n/\\n/g' || echo "No specific errors found")
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H 'Content-Type: application/json' \
           -d "{\"text\": \"🚨 *Laravel CI pipeline failed (Code Check)*\\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n📋 Error Snippet:\\n$SHORT_LOG\\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
