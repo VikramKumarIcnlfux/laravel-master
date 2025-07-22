@@ -31,10 +31,11 @@ jobs:
       run: vendor/bin/phpstan analyse --error-format=raw | tee phpstan.log
       continue-on-error: true
 
-    - name: Extract errors
+    - name: Extract errors from annotations
       id: errors
       run: |
-        ERRORS=$(grep -E "^\[ERROR\]" phpstan.log | tail -n 10 | sed 's/"/\\"/g; s/^\[ERROR\] *//; s/\n/\\n/g' || echo "No errors found")
+        # Extract annotations from GitHub Actions summary
+        ERRORS=$(grep -A 3 "Annotations" "$GITHUB_STEP_SUMMARY" | grep -E "^\xE2\x9D\x94" | sed 's/^\xE2\x9D\x94 //; s/"/\\"/g; s/\n/\\n/g' || echo "No errors found")
         echo "errors=$ERRORS" >> "$GITHUB_OUTPUT"
 
     - name: Send Google Chat notification if PHPStan fails
@@ -44,5 +45,5 @@ jobs:
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H "Content-Type: application/json" \
           -d "{
-            \"text\": \" 🚨 *PHPStan Failed on Commit* \\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n📋 Errors: \\n$ERRORS\\n🔗 https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"
+            \"text\": \"🚨 *PHPStan Failed on Commit* \\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n📋 Errors: \\n$ERRORS\\n🔗 https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"
           }"
