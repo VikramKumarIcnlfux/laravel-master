@@ -32,10 +32,6 @@ jobs:
     - name: Set Directory Permissions
       run: chmod -R 777 storage bootstrap/cache
 
-    # ----------------------------
-    # Run Code Quality Checks with Logs
-    # ----------------------------
-
     - name: Run Laravel Pint (Code Style)
       id: pint
       run: ./vendor/bin/pint --test | tee pint.log
@@ -51,10 +47,6 @@ jobs:
       run: ./vendor/bin/phpstan analyse | tee phpstan.log
       continue-on-error: true
 
-    # ----------------------------
-    # Combine logs into one file
-    # ----------------------------
-
     - name: Combine logs
       run: |
         echo "========== PINT ==========" > code-checks.log
@@ -63,10 +55,6 @@ jobs:
         cat tests.log >> code-checks.log
         echo -e "\n\n========== PHPSTAN ==========" >> code-checks.log
         cat phpstan.log >> code-checks.log
-
-    # ----------------------------
-    # Set failure flag
-    # ----------------------------
 
     - name: Set failure output if code fails
       id: set-output
@@ -77,21 +65,13 @@ jobs:
           echo "code_failed=false" >> "$GITHUB_OUTPUT"
         fi
 
-    # ----------------------------
-    # Notify Google Chat on CODE failure only
-    # ----------------------------
-
     - name: Notify Google Chat on CODE failure only
       if: ${{ steps.set-output.outputs.code_failed == 'true' }}
       run: |
-        SHORT_LOG=$(grep -Ei "error|fail|undefined|exception" code-checks.log | tail -n 10 | sed ':a;N;$!ba;s/"/\\"/g; s/\n/\\n/g')
+        SHORT_LOG=$(grep -Ei "^\[ERROR\]|fail|undefined|exception" code-checks.log | tail -n 10 | sed 's/"/\\"/g; s/\n/\\n/g' || echo "No specific errors found")
         curl -X POST "${{ secrets.GOOGLE_CHAT_WEBHOOK }}" \
           -H 'Content-Type: application/json' \
           -d "{\"text\": \"🚨 *Laravel CI pipeline failed (Code Check)*\\n🔁 Commit: ${GITHUB_SHA}\\n👤 Author: ${GITHUB_ACTOR}\\n📋 Error Snippet:\\n$SHORT_LOG\\n🔗 Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}"
-
-    # ----------------------------
-    # Notify Google Chat on Success
-    # ----------------------------
 
     - name: Notify Google Chat on success
       if: ${{ steps.set-output.outputs.code_failed == 'false' && success() }}
