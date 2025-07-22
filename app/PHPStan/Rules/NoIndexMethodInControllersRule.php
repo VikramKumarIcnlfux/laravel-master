@@ -18,6 +18,9 @@ class NoIndexMethodInControllersRule implements Rule
         return FuncCall::class;
     }
 
+    /**
+     * @return list<RuleError>
+     */
     public function processNode(Node $node, Scope $scope): array
     {
         if (! $node instanceof FuncCall) {
